@@ -11,6 +11,41 @@ module.exports = {
         primary: '#1f2937',
         secondary: '#6366f1',
       },
+      animation: {
+        slideIn: 'slideIn 0.3s ease-out',
+        fadeIn: 'fadeIn 0.2s ease-out',
+        scaleIn: 'scaleIn 0.3s ease-out',
+      },
+      keyframes: {
+        slideIn: {
+          from: {
+            transform: 'translateX(400px)',
+            opacity: '0',
+          },
+          to: {
+            transform: 'translateX(0)',
+            opacity: '1',
+          },
+        },
+        fadeIn: {
+          from: {
+            opacity: '0',
+          },
+          to: {
+            opacity: '1',
+          },
+        },
+        scaleIn: {
+          from: {
+            transform: 'scale(0.9)',
+            opacity: '0',
+          },
+          to: {
+            transform: 'scale(1)',
+            opacity: '1',
+          },
+        },
+      },
     },
   },
   plugins: [],
