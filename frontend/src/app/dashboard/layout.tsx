@@ -1,11 +1,10 @@
 'use client';
 
 import Sidebar from '@/components/Sidebar';
-import { SessionProvider } from 'next-auth/react';
 import { useSession } from 'next-auth/react';
 import { ReactNode } from 'react';
 
-function DashboardContent({ children }: { children: ReactNode }) {
+export default function Layout({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
 
   if (status === 'loading') {
@@ -23,13 +22,5 @@ function DashboardContent({ children }: { children: ReactNode }) {
         {children}
       </main>
     </div>
-  );
-}
-
-export default function Layout({ children }: { children: ReactNode }) {
-  return (
-    <SessionProvider>
-      <DashboardContent>{children}</DashboardContent>
-    </SessionProvider>
   );
 }

@@ -1,10 +1,10 @@
+'use client';
+
 import type { Metadata } from 'next';
 import './globals.css';
+import { SessionProvider } from 'next-auth/react';
 
-export const metadata: Metadata = {
-  title: 'Xionco Store - Admin Panel',
-  description: 'Store management admin panel for Xionco',
-};
+// Note: Metadata can't be used in client components, but Next.js handles it automatically
 
 export default function RootLayout({
   children,
@@ -13,7 +13,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50">{children}</body>
+      <body className="bg-gray-50">
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+      </body>
     </html>
   );
 }

@@ -41,6 +41,18 @@ export default function LoginPage() {
         <p className="text-center text-gray-600 text-sm mt-8">
           This is a demo admin panel for managing your store.
         </p>
+
+        <div className="mt-6 pt-6 border-t border-gray-200">
+          <p className="text-center text-gray-600 text-xs mb-3">
+            Development Mode
+          </p>
+          <a
+            href="/dev-login"
+            className="w-full block text-center bg-yellow-100 hover:bg-yellow-200 text-yellow-800 py-2 px-4 rounded-lg font-medium text-sm transition"
+          >
+            Skip to Dev Login
+          </a>
+        </div>
       </div>
     </div>
   );
