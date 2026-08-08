@@ -63,15 +63,32 @@ export const authOptions: NextAuthOptions = {
         // For dev login (credentials provider), fetch backend API token
         if (!account) {
           try {
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/dev-login`, {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+            console.log('Fetching backend token from:', apiUrl);
+            const response = await fetch(`${apiUrl}/api/auth/dev-login`, {
               method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
             });
+
+            if (!response.ok) {
+              throw new Error(`Backend returned ${response.status}: ${response.statusText}`);
+            }
+
             const data = await response.json();
+            console.log('Backend token response:', { hasToken: !!data.token });
+
             if (data.token) {
               (token as CustomToken).accessToken = data.token;
+              console.log('AccessToken set successfully');
+            } else {
+              console.warn('No token in backend response');
             }
           } catch (error) {
             console.error('Failed to fetch backend token:', error);
+            // Set a flag so we know the token fetch failed
+            (token as any).tokenError = error instanceof Error ? error.message : 'Unknown error';
           }
         }
       }
@@ -88,6 +105,13 @@ export const authOptions: NextAuthOptions = {
         session.user.email = token.email;
       }
       (session as CustomSession).accessToken = (token as CustomToken).accessToken;
+
+      // Log for debugging
+      console.log('Session callback:', {
+        hasAccessToken: !!(token as CustomToken).accessToken,
+        tokenError: (token as any).tokenError,
+      });
+
       return session;
     },
   },

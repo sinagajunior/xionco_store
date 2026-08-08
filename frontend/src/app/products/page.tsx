@@ -6,16 +6,21 @@ import ProductTable from '@/components/ProductTable';
 import { productApi } from '@/lib/api';
 
 export default function ProductsPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', description: '', category: '', price: '', sku: '' });
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const token = (session as any)?.accessToken;
+        if (!token) {
+          console.log('Waiting for accessToken...', { session, status });
+          return;
+        }
         const response = await productApi.getAll(token);
         setProducts(response.data);
       } catch (error) {
@@ -25,17 +30,23 @@ export default function ProductsPage() {
       }
     };
 
-    if (session) {
+    if (session && status === 'authenticated') {
       fetchProducts();
+    } else if (status === 'unauthenticated') {
+      setLoading(false);
     }
-  }, [session]);
+  }, [session, status]);
 
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitting(true);
     try {
       const token = (session as any)?.accessToken;
+      console.log('Add product - Session:', { session, status, token: token ? 'exists' : 'missing' });
+
       if (!token) {
-        alert('No authentication token found');
+        alert('Authentication token not available. Please ensure you are logged in.');
+        setSubmitting(false);
         return;
       }
 
@@ -55,6 +66,8 @@ export default function ProductsPage() {
     } catch (error) {
       console.error('Failed to add product:', error);
       alert('Failed to add product: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -114,8 +127,12 @@ export default function ProductsPage() {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="border rounded px-3 py-2 w-full mt-4"
           />
-          <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-indigo-700">
-            Add Product
+          <button
+            type="submit"
+            disabled={submitting}
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-indigo-700 disabled:bg-gray-400"
+          >
+            {submitting ? 'Adding...' : 'Add Product'}
           </button>
         </form>
       )}
