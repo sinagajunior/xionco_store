@@ -12,6 +12,11 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
 router.get('/facebook', passport.authenticate('facebook', { scope: ['email'] }));
 router.get('/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/' }), authController.facebookCallback);
 
+// Dev Login (development only)
+if (process.env.NODE_ENV === 'development') {
+  router.post('/dev-login', authController.devLogin);
+}
+
 // Logout
 router.post('/logout', authController.logout);
 

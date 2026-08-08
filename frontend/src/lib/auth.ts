@@ -59,6 +59,21 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.name = user.name;
         token.email = user.email;
+
+        // For dev login (credentials provider), fetch backend API token
+        if (!account) {
+          try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/auth/dev-login`, {
+              method: 'POST',
+            });
+            const data = await response.json();
+            if (data.token) {
+              (token as CustomToken).accessToken = data.token;
+            }
+          } catch (error) {
+            console.error('Failed to fetch backend token:', error);
+          }
+        }
       }
       if (account?.access_token) {
         (token as CustomToken).accessToken = account.access_token;
