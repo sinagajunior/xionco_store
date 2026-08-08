@@ -5,12 +5,15 @@ import { useSession } from 'next-auth/react';
 import StockTable from '@/components/StockTable';
 import { stockApi, productApi } from '@/lib/api';
 
+const ITEMS_PER_PAGE = 5;
+
 export default function StockPage() {
   const { data: session } = useSession();
   const [stock, setStock] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [formData, setFormData] = useState({
     product_id: '',
     movement_type: 'IN',
@@ -51,8 +54,8 @@ export default function StockPage() {
 
       await stockApi.recordMovement(
         {
-          product_id: parseInt(formData.product_id),
-          movement_type: formData.movement_type,
+          productId: parseInt(formData.product_id),
+          movementType: formData.movement_type,
           quantity: parseInt(formData.quantity),
           notes: formData.notes,
         },
@@ -80,6 +83,10 @@ export default function StockPage() {
   if (loading) {
     return <div className="p-8">Loading...</div>;
   }
+
+  const totalPages = Math.ceil(stock.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedStock = stock.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
     <div className="p-8">
@@ -140,7 +147,27 @@ export default function StockPage() {
         </form>
       )}
 
-      <StockTable stock={stock} />
+      <StockTable stock={paginatedStock} />
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 rounded border disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="mx-4">Page {currentPage} of {totalPages}</span>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 rounded border disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }

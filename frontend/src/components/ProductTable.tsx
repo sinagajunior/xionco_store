@@ -12,9 +12,11 @@ interface Product {
 
 interface ProductTableProps {
   products: Product[];
+  onEdit?: (product: Product) => void;
+  onDelete?: (id: number) => void;
 }
 
-export default function ProductTable({ products }: ProductTableProps) {
+export default function ProductTable({ products, onEdit, onDelete }: ProductTableProps) {
   if (products.length === 0) {
     return (
       <div className="bg-white rounded-lg shadow p-6 text-center">
@@ -33,6 +35,7 @@ export default function ProductTable({ products }: ProductTableProps) {
             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Price</th>
             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">SKU</th>
             <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Description</th>
+            {(onEdit || onDelete) && <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Actions</th>}
           </tr>
         </thead>
         <tbody className="divide-y">
@@ -43,6 +46,26 @@ export default function ProductTable({ products }: ProductTableProps) {
               <td className="px-6 py-4 text-sm text-gray-900 font-semibold">${product.price}</td>
               <td className="px-6 py-4 text-sm text-gray-600">{product.sku}</td>
               <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{product.description}</td>
+              {(onEdit || onDelete) && (
+                <td className="px-6 py-4 text-sm space-x-2 flex">
+                  {onEdit && (
+                    <button
+                      onClick={() => onEdit(product)}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      onClick={() => onDelete(product.id)}
+                      className="text-red-600 hover:text-red-800 font-medium"
+                    >
+                      Delete
+                    </button>
+                  )}
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

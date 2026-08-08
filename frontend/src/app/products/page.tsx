@@ -5,12 +5,16 @@ import { useSession } from 'next-auth/react';
 import ProductTable from '@/components/ProductTable';
 import { productApi } from '@/lib/api';
 
+const ITEMS_PER_PAGE = 5;
+
 export default function ProductsPage() {
   const { data: session, status } = useSession();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [formData, setFormData] = useState({ name: '', description: '', category: '', price: '', sku: '' });
 
   useEffect(() => {
@@ -50,37 +54,97 @@ export default function ProductsPage() {
         return;
       }
 
-      const response = await productApi.create({
-        ...formData,
-        price: parseFloat(formData.price),
-      }, token);
-
-      if (response.status === 201 || response.status === 200) {
-        setShowForm(false);
-        setFormData({ name: '', description: '', category: '', price: '', sku: '' });
-        // Refresh products
-        const productsResponse = await productApi.getAll(token);
-        setProducts(productsResponse.data);
+      if (editingId) {
+        // Update product
+        await productApi.update(editingId, {
+          ...formData,
+          price: parseFloat(formData.price),
+        }, token);
+        alert('Product updated successfully!');
+      } else {
+        // Create product
+        await productApi.create({
+          ...formData,
+          price: parseFloat(formData.price),
+        }, token);
         alert('Product added successfully!');
       }
+
+      setShowForm(false);
+      setEditingId(null);
+      setFormData({ name: '', description: '', category: '', price: '', sku: '' });
+      setCurrentPage(1);
+
+      // Refresh products
+      const productsResponse = await productApi.getAll(token);
+      setProducts(productsResponse.data);
     } catch (error) {
-      console.error('Failed to add product:', error);
-      alert('Failed to add product: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      console.error('Failed to save product:', error);
+      alert('Failed to save product: ' + (error instanceof Error ? error.message : 'Unknown error'));
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (product: any) => {
+    setEditingId(product.id);
+    setFormData({
+      name: product.name,
+      description: product.description,
+      category: product.category,
+      price: product.price,
+      sku: product.sku,
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+
+    try {
+      const token = (session as any)?.accessToken;
+      if (!token) {
+        alert('Authentication token not available.');
+        return;
+      }
+
+      await productApi.delete(id, token);
+      alert('Product deleted successfully!');
+
+      // Refresh products
+      const productsResponse = await productApi.getAll(token);
+      setProducts(productsResponse.data);
+      setCurrentPage(1);
+    } catch (error) {
+      console.error('Failed to delete product:', error);
+      alert('Failed to delete product: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
+
+  const handleCancel = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setFormData({ name: '', description: '', category: '', price: '', sku: '' });
   };
 
   if (loading) {
     return <div className="p-8">Loading...</div>;
   }
 
+  const totalPages = Math.ceil(products.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedProducts = products.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
   return (
     <div className="p-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Products</h1>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            setEditingId(null);
+            setFormData({ name: '', description: '', category: '', price: '', sku: '' });
+            setShowForm(!showForm);
+          }}
           className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
         >
           {showForm ? 'Cancel' : 'Add Product'}
@@ -89,6 +153,7 @@ export default function ProductsPage() {
 
       {showForm && (
         <form onSubmit={handleAddProduct} className="bg-white rounded-lg shadow p-6 mb-8">
+          <h2 className="text-xl font-bold mb-4">{editingId ? 'Edit Product' : 'Add Product'}</h2>
           <div className="grid grid-cols-2 gap-4">
             <input
               type="text"
@@ -127,17 +192,46 @@ export default function ProductsPage() {
             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             className="border rounded px-3 py-2 w-full mt-4"
           />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="bg-indigo-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-indigo-700 disabled:bg-gray-400"
-          >
-            {submitting ? 'Adding...' : 'Add Product'}
-          </button>
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="bg-indigo-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-indigo-700 disabled:bg-gray-400"
+            >
+              {submitting ? (editingId ? 'Updating...' : 'Adding...') : (editingId ? 'Update Product' : 'Add Product')}
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="bg-gray-400 text-white px-4 py-2 rounded-lg mt-4 hover:bg-gray-500"
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       )}
 
-      <ProductTable products={products} />
+      <ProductTable products={paginatedProducts} onEdit={handleEdit} onDelete={handleDelete} />
+
+      {totalPages > 1 && (
+        <div className="flex justify-center items-center gap-2 mt-8">
+          <button
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3 py-2 rounded border disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span className="mx-4">Page {currentPage} of {totalPages}</span>
+          <button
+            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3 py-2 rounded border disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
     </div>
   );
 }
