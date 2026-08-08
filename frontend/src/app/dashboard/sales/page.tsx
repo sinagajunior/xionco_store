@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import SalesTable from '@/components/SalesTable';
+import Alert from '@/components/Alert';
 import { salesApi, productApi } from '@/lib/api';
 
 const ITEMS_PER_PAGE = 5;
@@ -15,6 +16,7 @@ export default function SalesPage() {
   const [showForm, setShowForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [alert, setAlert] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [formData, setFormData] = useState({
     product_id: '',
     quantity: '',
@@ -48,7 +50,7 @@ export default function SalesPage() {
     try {
       const token = (session as any)?.accessToken;
       if (!token) {
-        alert('No authentication token found');
+        setAlert({ message: 'No authentication token found.', type: 'error' });
         return;
       }
 
@@ -71,10 +73,13 @@ export default function SalesPage() {
       // Refresh sales
       const response = await salesApi.getAll(token);
       setSales(response.data);
-      alert('Sale recorded successfully!');
+      setAlert({ message: 'Sale recorded successfully!', type: 'success' });
     } catch (error) {
       console.error('Failed to add sale:', error);
-      alert('Failed to add sale: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setAlert({
+        message: 'Failed to add sale: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        type: 'error',
+      });
     }
   };
 
@@ -165,6 +170,14 @@ export default function SalesPage() {
       )}
 
       <SalesTable sales={paginatedSales} />
+
+      {alert && (
+        <Alert
+          message={alert.message}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
 
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-8">

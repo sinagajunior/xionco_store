@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import StockTable from '@/components/StockTable';
+import Alert from '@/components/Alert';
 import { stockApi, productApi } from '@/lib/api';
 
 const ITEMS_PER_PAGE = 5;
@@ -15,6 +16,7 @@ export default function StockPage() {
   const [showForm, setShowForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
+  const [alert, setAlert] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
   const [formData, setFormData] = useState({
     product_id: '',
     movement_type: 'IN',
@@ -49,7 +51,7 @@ export default function StockPage() {
     try {
       const token = (session as any)?.accessToken;
       if (!token) {
-        alert('No authentication token found');
+        setAlert({ message: 'No authentication token found.', type: 'error' });
         return;
       }
 
@@ -74,10 +76,13 @@ export default function StockPage() {
       // Refresh stock
       const response = await stockApi.getAll(token);
       setStock(response.data);
-      alert('Stock movement recorded successfully!');
+      setAlert({ message: 'Stock movement recorded successfully!', type: 'success' });
     } catch (error) {
       console.error('Failed to record movement:', error);
-      alert('Failed to record movement: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setAlert({
+        message: 'Failed to record movement: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        type: 'error',
+      });
     }
   };
 
@@ -171,6 +176,14 @@ export default function StockPage() {
       )}
 
       <StockTable stock={paginatedStock} />
+
+      {alert && (
+        <Alert
+          message={alert.message}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
 
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-8">

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import ProductTable from '@/components/ProductTable';
+import Alert from '@/components/Alert';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { productApi } from '@/lib/api';
 
 const ITEMS_PER_PAGE = 5;
@@ -17,6 +19,8 @@ export default function ProductsPage() {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({ name: '', description: '', category: '', price: '', sku: '' });
+  const [alert, setAlert] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -61,14 +65,14 @@ export default function ProductsPage() {
           ...formData,
           price: parseFloat(formData.price),
         }, token);
-        alert('Product updated successfully!');
+        setAlert({ message: 'Product updated successfully!', type: 'success' });
       } else {
         // Create product
         await productApi.create({
           ...formData,
           price: parseFloat(formData.price),
         }, token);
-        alert('Product added successfully!');
+        setAlert({ message: 'Product added successfully!', type: 'success' });
       }
 
       setShowForm(false);
@@ -81,7 +85,10 @@ export default function ProductsPage() {
       setProducts(productsResponse.data);
     } catch (error) {
       console.error('Failed to save product:', error);
-      alert('Failed to save product: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setAlert({
+        message: 'Failed to save product: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        type: 'error',
+      });
     } finally {
       setSubmitting(false);
     }
@@ -100,25 +107,35 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
+    setConfirmDelete(id);
+  };
+
+  const confirmDeleteProduct = async () => {
+    if (confirmDelete === null) return;
 
     try {
       const token = (session as any)?.accessToken;
       if (!token) {
-        alert('Authentication token not available.');
+        setAlert({ message: 'Authentication token not available.', type: 'error' });
+        setConfirmDelete(null);
         return;
       }
 
-      await productApi.delete(id, token);
-      alert('Product deleted successfully!');
+      await productApi.delete(confirmDelete, token);
+      setAlert({ message: 'Product deleted successfully!', type: 'success' });
 
       // Refresh products
       const productsResponse = await productApi.getAll(token);
       setProducts(productsResponse.data);
       setCurrentPage(1);
+      setConfirmDelete(null);
     } catch (error) {
       console.error('Failed to delete product:', error);
-      alert('Failed to delete product: ' + (error instanceof Error ? error.message : 'Unknown error'));
+      setAlert({
+        message: 'Failed to delete product: ' + (error instanceof Error ? error.message : 'Unknown error'),
+        type: 'error',
+      });
+      setConfirmDelete(null);
     }
   };
 
@@ -240,6 +257,26 @@ export default function ProductsPage() {
       )}
 
       <ProductTable products={paginatedProducts} onEdit={handleEdit} onDelete={handleDelete} />
+
+      {alert && (
+        <Alert
+          message={alert.message}
+          type={alert.type}
+          onClose={() => setAlert(null)}
+        />
+      )}
+
+      {confirmDelete !== null && (
+        <ConfirmDialog
+          title="Delete Product"
+          message="Are you sure you want to delete this product? This action cannot be undone."
+          onConfirm={confirmDeleteProduct}
+          onCancel={() => setConfirmDelete(null)}
+          confirmText="Delete"
+          cancelText="Cancel"
+          isDangerous={true}
+        />
+      )}
 
       {totalPages > 1 && (
         <div className="flex justify-center items-center gap-2 mt-8">
