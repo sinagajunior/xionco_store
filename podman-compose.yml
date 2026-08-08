@@ -1,0 +1,14 @@
+version: "3"
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: xionco
+      POSTGRES_PASSWORD: xionco_pass
+      POSTGRES_DB: xionco_store
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
