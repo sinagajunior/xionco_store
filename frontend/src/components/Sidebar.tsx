@@ -2,11 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { signOut, useSession } from 'next-auth/react';
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { data: session } = useSession();
 
   const isActive = (href: string) => pathname.startsWith(href);
 
@@ -42,19 +40,6 @@ export default function Sidebar() {
           ))}
         </ul>
       </nav>
-
-      <div className="p-6 border-t border-gray-800">
-        <div className="text-sm mb-4">
-          <p className="text-gray-400">Logged in as</p>
-          <p className="text-white font-medium">{session?.user?.name || 'User'}</p>
-        </div>
-        <button
-          onClick={() => signOut({ callbackUrl: '/login' })}
-          className="w-full bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition"
-        >
-          Logout
-        </button>
-      </div>
     </aside>
   );
 }
