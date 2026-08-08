@@ -3,30 +3,79 @@
 import { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import StockTable from '@/components/StockTable';
-import { stockApi } from '@/lib/api';
+import { stockApi, productApi } from '@/lib/api';
 
 export default function StockPage() {
   const { data: session } = useSession();
   const [stock, setStock] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [formData, setFormData] = useState({
+    product_id: '',
+    movement_type: 'IN',
+    quantity: '',
+    notes: '',
+  });
 
   useEffect(() => {
-    const fetchStock = async () => {
+    const fetchData = async () => {
       try {
         const token = (session as any)?.accessToken;
-        const response = await stockApi.getAll(token);
-        setStock(response.data);
+        const [stockRes, productsRes] = await Promise.all([
+          stockApi.getAll(token),
+          productApi.getAll(token),
+        ]);
+        setStock(stockRes.data);
+        setProducts(productsRes.data);
       } catch (error) {
-        console.error('Failed to fetch stock:', error);
+        console.error('Failed to fetch data:', error);
       } finally {
         setLoading(false);
       }
     };
 
     if (session) {
-      fetchStock();
+      fetchData();
     }
   }, [session]);
+
+  const handleRecordMovement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const token = (session as any)?.accessToken;
+      if (!token) {
+        alert('No authentication token found');
+        return;
+      }
+
+      await stockApi.recordMovement(
+        {
+          product_id: parseInt(formData.product_id),
+          movement_type: formData.movement_type,
+          quantity: parseInt(formData.quantity),
+          notes: formData.notes,
+        },
+        token
+      );
+
+      setShowForm(false);
+      setFormData({
+        product_id: '',
+        movement_type: 'IN',
+        quantity: '',
+        notes: '',
+      });
+
+      // Refresh stock
+      const response = await stockApi.getAll(token);
+      setStock(response.data);
+      alert('Stock movement recorded successfully!');
+    } catch (error) {
+      console.error('Failed to record movement:', error);
+      alert('Failed to record movement: ' + (error instanceof Error ? error.message : 'Unknown error'));
+    }
+  };
 
   if (loading) {
     return <div className="p-8">Loading...</div>;
@@ -34,7 +83,63 @@ export default function StockPage() {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-bold text-gray-900 mb-8">Stock Levels</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Stock Levels</h1>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
+        >
+          {showForm ? 'Cancel' : 'Record Movement'}
+        </button>
+      </div>
+
+      {showForm && (
+        <form onSubmit={handleRecordMovement} className="bg-white rounded-lg shadow p-6 mb-8">
+          <div className="grid grid-cols-2 gap-4">
+            <select
+              value={formData.product_id}
+              onChange={(e) => setFormData({ ...formData, product_id: e.target.value })}
+              className="border rounded px-3 py-2"
+              required
+            >
+              <option value="">Select Product</option>
+              {products.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+            <select
+              value={formData.movement_type}
+              onChange={(e) => setFormData({ ...formData, movement_type: e.target.value })}
+              className="border rounded px-3 py-2"
+            >
+              <option value="IN">Stock In</option>
+              <option value="OUT">Stock Out</option>
+              <option value="ADJUSTMENT">Adjustment</option>
+            </select>
+            <input
+              type="number"
+              placeholder="Quantity"
+              value={formData.quantity}
+              onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+              className="border rounded px-3 py-2"
+              required
+            />
+            <div></div>
+          </div>
+          <textarea
+            placeholder="Notes"
+            value={formData.notes}
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+            className="border rounded px-3 py-2 w-full mt-4"
+          />
+          <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-indigo-700">
+            Record Movement
+          </button>
+        </form>
+      )}
+
       <StockTable stock={stock} />
     </div>
   );

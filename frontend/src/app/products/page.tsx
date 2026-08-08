@@ -34,17 +34,27 @@ export default function ProductsPage() {
     e.preventDefault();
     try {
       const token = (session as any)?.accessToken;
-      await productApi.create({
+      if (!token) {
+        alert('No authentication token found');
+        return;
+      }
+
+      const response = await productApi.create({
         ...formData,
         price: parseFloat(formData.price),
       }, token);
-      setShowForm(false);
-      setFormData({ name: '', description: '', category: '', price: '', sku: '' });
-      // Refresh products
-      const response = await productApi.getAll(token);
-      setProducts(response.data);
+
+      if (response.status === 201 || response.status === 200) {
+        setShowForm(false);
+        setFormData({ name: '', description: '', category: '', price: '', sku: '' });
+        // Refresh products
+        const productsResponse = await productApi.getAll(token);
+        setProducts(productsResponse.data);
+        alert('Product added successfully!');
+      }
     } catch (error) {
       console.error('Failed to add product:', error);
+      alert('Failed to add product: ' + (error instanceof Error ? error.message : 'Unknown error'));
     }
   };
 
