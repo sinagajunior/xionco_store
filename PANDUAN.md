@@ -401,3 +401,6 @@ Xionco Store © 2024. Semua hak dilindungi.
 
 screenshoot app
 
+
+<img width="1886" height="1033" alt="screenshoot_product" src="https://github.com/user-attachments/assets/67bca45b-0d66-4f7e-9fda-3d5d6f5a2492" />
+<img width="1886" height="1033" alt="sales" src="https://github.com/user-attachments/assets/7108b516-469a-495d-ad21-5d489bab1229" />
