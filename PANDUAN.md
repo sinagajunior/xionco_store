@@ -398,3 +398,6 @@ Xionco Store © 2024. Semua hak dilindungi.
 **Terakhir diupdate**: Agustus 2024
 
 **Status**: ✅ Ready for Development & Testing
+
+screenshoot app
+
