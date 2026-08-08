@@ -14,6 +14,7 @@ export default function SalesPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     product_id: '',
     quantity: '',
@@ -81,13 +82,22 @@ export default function SalesPage() {
     return <div className="p-8">Loading...</div>;
   }
 
-  const totalPages = Math.ceil(sales.length / ITEMS_PER_PAGE);
+  // Filter sales based on search term
+  const filteredSales = sales.filter(item => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      item.name.toLowerCase().includes(searchLower) ||
+      item.sku.toLowerCase().includes(searchLower)
+    );
+  });
+
+  const totalPages = Math.ceil(filteredSales.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedSales = sales.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  const paginatedSales = filteredSales.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   return (
     <div className="p-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Sales</h1>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -95,6 +105,19 @@ export default function SalesPage() {
         >
           {showForm ? 'Cancel' : 'Record Sale'}
         </button>
+      </div>
+
+      <div className="mb-6">
+        <input
+          type="text"
+          placeholder="Search by product name or SKU..."
+          value={searchTerm}
+          onChange={(e) => {
+            setSearchTerm(e.target.value);
+            setCurrentPage(1);
+          }}
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
+        />
       </div>
 
       {showForm && (

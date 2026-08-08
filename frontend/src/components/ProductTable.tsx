@@ -56,21 +56,23 @@ export default function ProductTable({ products, onEdit, onDelete }: ProductTabl
               <td className="px-6 py-4 text-sm text-gray-600">{product.sku}</td>
               <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{product.description}</td>
               {(onEdit || onDelete) && (
-                <td className="px-6 py-4 text-sm space-x-2 flex">
+                <td className="px-6 py-4 text-sm space-x-3 flex">
                   {onEdit && (
                     <button
                       onClick={() => onEdit(product)}
-                      className="text-blue-600 hover:text-blue-800 font-medium"
+                      className="text-blue-600 hover:text-blue-800 transition text-lg"
+                      title="Edit product"
                     >
-                      Edit
+                      ✏️
                     </button>
                   )}
                   {onDelete && (
                     <button
                       onClick={() => onDelete(product.id)}
-                      className="text-red-600 hover:text-red-800 font-medium"
+                      className="text-red-600 hover:text-red-800 transition text-lg"
+                      title="Delete product"
                     >
-                      Delete
+                      🗑️
                     </button>
                   )}
                 </td>
