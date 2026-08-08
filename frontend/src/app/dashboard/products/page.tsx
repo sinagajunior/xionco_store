@@ -170,14 +170,17 @@ export default function ProductsPage() {
               onChange={(e) => setFormData({ ...formData, category: e.target.value })}
               className="border rounded px-3 py-2"
             />
-            <input
-              type="number"
-              placeholder="Price"
-              value={formData.price}
-              onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              className="border rounded px-3 py-2"
-              required
-            />
+            <div>
+              <input
+                type="number"
+                placeholder="Price (IDR)"
+                value={formData.price}
+                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                className="border rounded px-3 py-2 w-full"
+                required
+              />
+              <small className="text-gray-500">Price in Indonesian Rupiah</small>
+            </div>
             <input
               type="text"
               placeholder="SKU"

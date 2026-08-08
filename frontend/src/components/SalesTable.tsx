@@ -1,5 +1,14 @@
 'use client';
 
+const formatIDR = (value: string | number) => {
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(numValue);
+};
+
 interface Sale {
   id: number;
   product_id: number;
@@ -46,8 +55,8 @@ export default function SalesTable({ sales }: SalesTableProps) {
                 <td className="px-6 py-4 text-sm text-gray-900 font-medium">{sale.name}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{sale.sku}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">{sale.quantity}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">${sale.unit_price}</td>
-                <td className="px-6 py-4 text-sm text-gray-900 font-semibold">${sale.total_price}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{formatIDR(sale.unit_price)}</td>
+                <td className="px-6 py-4 text-sm text-gray-900 font-semibold">{formatIDR(sale.total_price)}</td>
                 <td className="px-6 py-4 text-sm text-gray-600">
                   {new Date(sale.sale_date).toLocaleDateString()}
                 </td>
@@ -60,7 +69,7 @@ export default function SalesTable({ sales }: SalesTableProps) {
       <div className="bg-white rounded-lg shadow p-6">
         <div className="flex justify-between items-center">
           <h3 className="text-lg font-semibold text-gray-900">Total Revenue</h3>
-          <p className="text-2xl font-bold text-green-600">${totalRevenue.toFixed(2)}</p>
+          <p className="text-2xl font-bold text-green-600">{formatIDR(totalRevenue)}</p>
         </div>
       </div>
     </div>

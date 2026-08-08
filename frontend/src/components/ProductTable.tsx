@@ -1,5 +1,14 @@
 'use client';
 
+const formatIDR = (value: string | number) => {
+  const numValue = typeof value === 'string' ? parseFloat(value) : value;
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(numValue);
+};
+
 interface Product {
   id: number;
   name: string;
@@ -43,7 +52,7 @@ export default function ProductTable({ products, onEdit, onDelete }: ProductTabl
             <tr key={product.id} className="hover:bg-gray-50">
               <td className="px-6 py-4 text-sm text-gray-900 font-medium">{product.name}</td>
               <td className="px-6 py-4 text-sm text-gray-600">{product.category}</td>
-              <td className="px-6 py-4 text-sm text-gray-900 font-semibold">${product.price}</td>
+              <td className="px-6 py-4 text-sm text-gray-900 font-semibold">{formatIDR(product.price)}</td>
               <td className="px-6 py-4 text-sm text-gray-600">{product.sku}</td>
               <td className="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">{product.description}</td>
               {(onEdit || onDelete) && (

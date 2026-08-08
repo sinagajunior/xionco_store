@@ -12,6 +12,15 @@ interface DashboardStats {
   totalRevenue: number;
 }
 
+// Format currency as Indonesian Rupiah
+const formatIDR = (value: number) => {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(value);
+};
+
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [stats, setStats] = useState<DashboardStats>({
@@ -74,9 +83,9 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard title="Total Products" value={stats.totalProducts} />
         <StatCard title="Total Stock Items" value={stats.totalStock} />
-        <StatCard title="Stock Value" value={`$${stats.stockValue.toFixed(2)}`} />
+        <StatCard title="Stock Value" value={formatIDR(stats.stockValue)} />
         <StatCard title="Total Sales" value={stats.totalSales} />
-        <StatCard title="Total Revenue" value={`$${stats.totalRevenue.toFixed(2)}`} />
+        <StatCard title="Total Revenue" value={formatIDR(stats.totalRevenue)} />
       </div>
     </div>
   );

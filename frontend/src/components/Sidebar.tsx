@@ -12,9 +12,9 @@ export default function Sidebar() {
 
   const links = [
     { href: '/dashboard', label: 'Dashboard' },
-    { href: '/products', label: 'Products' },
-    { href: '/stock', label: 'Stock' },
-    { href: '/sales', label: 'Sales' },
+    { href: '/dashboard/products', label: 'Products' },
+    { href: '/dashboard/stock', label: 'Stock' },
+    { href: '/dashboard/sales', label: 'Sales' },
   ];
 
   return (

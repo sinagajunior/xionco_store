@@ -121,15 +121,18 @@ export default function SalesPage() {
               className="border rounded px-3 py-2"
               required
             />
-            <input
-              type="number"
-              placeholder="Unit Price"
-              step="0.01"
-              value={formData.unit_price}
-              onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
-              className="border rounded px-3 py-2"
-              required
-            />
+            <div>
+              <input
+                type="number"
+                placeholder="Unit Price (IDR)"
+                step="1"
+                value={formData.unit_price}
+                onChange={(e) => setFormData({ ...formData, unit_price: e.target.value })}
+                className="border rounded px-3 py-2 w-full"
+                required
+              />
+              <small className="text-gray-500">Price per unit in Indonesian Rupiah</small>
+            </div>
             <div></div>
           </div>
           <button type="submit" className="bg-indigo-600 text-white px-4 py-2 rounded-lg mt-4 hover:bg-indigo-700">
